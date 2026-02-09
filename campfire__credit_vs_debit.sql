@@ -40,6 +40,7 @@ map_cte AS (
         games,
         retail,
         description, 
+        reference
     FROM CARRY1ST_PLATFORM.refined.UPLOAD__CAMPFIRE 
 ),
 
@@ -56,6 +57,7 @@ join_cte AS (
         m.games,
         m.retail,
         REPLACE(m.description, '__month_year__', TO_CHAR(t.last_day_month, 'MMMM YY')) AS description, 
+        m.reference,
         CASE 
             WHEN calc = 'P1ST_COMISSION' THEN t.p1st_comission
             WHEN calc = 'PROCESSED_AMT' THEN t.processed_amount
@@ -87,12 +89,13 @@ union_cte AS (
         m.games,
         m.retail,
         REPLACE(m.description, '__month_year__', TO_CHAR(j.last_day_month, 'MMMM YY')) AS description, 
+        m.reference,
         SUM(value) AS value 
     FROM join_cte AS j
     LEFT JOIN map_cte AS m
         ON m.metric = 'HBI SUM'
       --  AND gateway = gateway
-    GROUP BY 1,2,3,4,5,6,7,8,9,10,11
+    GROUP BY 1,2,3,4,5,6,7,8,9,10,11,12
 
     UNION ALL 
 
@@ -112,13 +115,14 @@ union_cte AS (
         m.games,
         m.retail,
         REPLACE(m.description, '__month_year__', TO_CHAR(j.last_day_month, 'MMMM YY')) AS description, 
+        m.reference,
         SUM(value) AS value 
     FROM join_cte AS j
     INNER JOIN map_cte AS m
         ON j.entity = m.entity
         AND m.metric = 'HBI PULL'
       --  AND gateway = gateway
-    GROUP BY 1,2,3,4,5,6,7,8,9,10,11
+    GROUP BY 1,2,3,4,5,6,7,8,9,10,11,12
 
     UNION ALL
 
@@ -134,13 +138,14 @@ union_cte AS (
         m.games,
         m.retail,
         REPLACE(m.description, '__month_year__', TO_CHAR(j.last_day_month, 'MMMM YY')) AS description, 
+        m.reference,
         SUM(value) AS value 
     FROM join_cte AS j
     INNER JOIN map_cte AS m
         ON j.entity = m.provider
         AND m.metric = 'ADG & SA SUM'
       --  AND gateway = gateway
-    GROUP BY 1,2,3,4,5,6,7,8,9,10,11
+    GROUP BY 1,2,3,4,5,6,7,8,9,10,11,12
 
 
     UNION ALL
@@ -157,22 +162,24 @@ union_cte AS (
         games,
         retail,
         description, 
+        reference,
         value 
     FROM join_cte
 )
 
 SELECT
         last_day_month,
-        provider,
         entity,
-        revenue_types,
         account,
-        account_type,
         account_name,
         cost_center,
         games,
         retail,
         description, 
+        reference,
+        'Journal Entry' As upload_type,
+        'NGN' AS currency,
+        'TRUE' AS monthly_avg_rate,
         IFF(account_type = 'DEBIT', value, 0) AS debit,
         IFF(account_type = 'CREDIT', value, 0) AS credit,
 FROM union_cte 
