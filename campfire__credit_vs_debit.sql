@@ -22,7 +22,7 @@ WITH trx_cte AS (
         AND trx_date >= '2024-01-01'
         AND tech_gate_source IN ('MPL','RIOT','SHOP')
         AND payment_gateway = 'Paystack'
-        AND LAST_DAY(trx_date) = '2025-11-30'
+        AND to_char(trx_date, 'YYYY-MM') >= '2025-11'
     GROUP BY 1,2
 ),
 
