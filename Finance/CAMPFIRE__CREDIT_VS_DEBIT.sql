@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW CARRY1ST_PLATFORM.refined.CAMPFIRE__CREDIT_VS_DEBIT AS
+--CREATE OR REPLACE VIEW CARRY1ST_PLATFORM.refined.CAMPFIRE__CREDIT_VS_DEBIT AS
 
 WITH trx_cte AS (
     SELECT    
@@ -44,6 +44,8 @@ map_cte AS (
         description, 
         reference
     FROM CARRY1ST_PLATFORM.refined.UPLOAD__CAMPFIRE 
+    WHERE 1=1
+        AND old <> 1
 ),
 
 join_cte AS (
