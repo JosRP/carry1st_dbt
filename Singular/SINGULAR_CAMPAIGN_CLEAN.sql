@@ -23,7 +23,7 @@ WITH campaign_cte AS (
         SUM(adn_impressions) AS impressions, 
         SUM(adn_clicks) AS clicks,
         SUM(adn_cost) AS cost
-    FROM SINGULAR.SINGULAR.CREATIVE_IQ
+    FROM SINGULAR.SINGULAR.CUSTOM_CAMPAIGN_CREATIVE_V1
     WHERE 1=1   
         AND DATE(date) <= SYSDATE()::date -1 
         AND adn_campaign_id IS NOT NULL
