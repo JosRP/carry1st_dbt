@@ -1,3 +1,5 @@
+CREATE OR REPLACE VIEW CARRY1ST_PLATFORM.refined.CAMPFIRE__CREDIT_VS_DEBIT AS
+
 WITH trx_cte AS (
     SELECT    
         LAST_DAY(trx_date) AS last_day_month,
@@ -58,6 +60,7 @@ join_cte AS (
         m.retail,
         REPLACE(m.description, '__month_year__', TO_CHAR(t.last_day_month, 'MMMM YY')) AS description, 
         m.reference,
+        m.calc,
         CASE 
             WHEN calc = 'P1ST_COMISSION' THEN t.p1st_comission
             WHEN calc = 'PROCESSED_AMT' THEN t.processed_amount
@@ -68,7 +71,7 @@ join_cte AS (
     FROM map_cte AS m
     LEFT JOIN trx_cte AS t
         ON  m.provider = t.provider_name
-        AND m.metric NOT IN ('ADG & SA SUM', 'HBI PULL') 
+        AND m.metric NOT IN ('ADG & SA SUM', 'HBI PULL', 'HBI SUM') 
     WHERE 1=1
        -- AND t.last_day_month = '2025-11-30'
 ),
@@ -77,7 +80,7 @@ union_cte AS (
     SELECT 
         j.last_day_month,
         m.provider AS provider,
-        'HBI Technology' AS entity,
+        m.entity AS entity,
         m.revenue_types ,
         m.account AS account,
         CASE 
@@ -90,7 +93,7 @@ union_cte AS (
         m.retail,
         REPLACE(m.description, '__month_year__', TO_CHAR(j.last_day_month, 'MMMM YY')) AS description, 
         m.reference,
-        SUM(value) AS value 
+        SUM(j.value) AS value 
     FROM join_cte AS j
     LEFT JOIN map_cte AS m
         ON m.metric = 'HBI SUM'
