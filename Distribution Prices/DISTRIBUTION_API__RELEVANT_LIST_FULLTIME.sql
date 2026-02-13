@@ -36,6 +36,17 @@ bamboo_cte AS (
     LATERAL FLATTEN(input => "products") AS f
 ),
 
+bamboo_fx_cte AS (
+    SELECT  
+        "currencyCode" As currency_code,
+        MAX_BY("value", "load_date") as fx_rate
+    FROM CARRY1ST_PLATFORM.RAW.BAMBOO_CARD_FX_RATE
+    WHERE 1=1
+        AND "base_currency" = 'USD'
+        AND "load_date" = DATE(SYSDATE()) - 1
+    GROUP BY 1
+),
+
 union_cte AS (
     SELECT
         DATE("load_date") AS prov_date,  
@@ -150,23 +161,29 @@ union_cte AS (
 
     -- BAMBOO
     SELECT 
-        prov_date,                  
+        b.prov_date,                  
         999998 AS c1st_prov_id,                              
-        id AS prov_sku_id,                   
+        b.id AS prov_sku_id,                   
         'BAMBOO' AS provider_name,                       
-        global_name AS prov_prod_name,                       
-        sku_name AS prov_prod_name_2,                     
-        min_face_value AS face_value,                    
-        item_currency AS face_value_cy,                  
+        b.global_name AS prov_prod_name,                       
+        b.sku_name AS prov_prod_name_2,                     
+        b.min_face_value AS face_value,                    
+        b.item_currency AS face_value_cy,                  
         NULL AS srp,
         NULL As srp_cy,
-        price_min AS cogs,
-        currency_code AS cogs_cy,                        
-        IFF(currency_code = 'USD', price_min, NULL) AS  cogs_usd,
-        IFF(item_currency = currency_code, ((min_face_value - price_min) / min_face_value) * 100, NULL ) AS c1st_margin,
-        IFF(min_face_value = max_face_value, 'Discrete', 'Continuous') AS volume_type,
+        b.price_min AS cogs,
+        b.currency_code AS cogs_cy,                        
+        IFF(
+            b.currency_code = 'USD', 
+            b.price_min, 
+            b.price_min * f.fx_rate
+            ) AS  cogs_usd,
+        IFF(b.item_currency = b.currency_code, ((b.min_face_value - b.price_min) / b.min_face_value) * 100, NULL ) AS c1st_margin,
+        IFF(b.min_face_value = b.max_face_value, 'Discrete', 'Continuous') AS volume_type,
         'Unknown' AS product_type   
-    FROM bamboo_cte 
+    FROM bamboo_cte AS b
+    LEFT JOIN bamboo_fx_cte AS f
+        ON b.currency_code = f.currency_code
     WHERE 1=1
     
     UNION ALL
