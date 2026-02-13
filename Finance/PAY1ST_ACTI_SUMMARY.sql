@@ -1,4 +1,5 @@
---create or replace view CARRY1ST_PLATFORM.REFINED.PAY1ST_ACTI_SUMMARY as 
+create or replace view CARRY1ST_PLATFORM.REFINED.PAY1ST_ACTI_SUMMARY as 
+
 WITH base_cte As (
     SELECT 
         trx_date AS trx_date, 
@@ -21,7 +22,7 @@ WITH base_cte As (
     WHERE 1=1   
         AND reporting_flag = 'Yes'
         AND provider_name = 'Activision'
-       -- AND trx_date >= current_date()-10
+        AND trx_date >= current_date()-10
     GROUP BY 1,2,3,4,5,6
 )
 
