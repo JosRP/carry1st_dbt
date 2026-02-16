@@ -173,20 +173,20 @@ union_cte AS (
 )
 
 SELECT
-        last_day_month,
-        entity,
-        account,
-        account_name,
-        cost_center,
-        games,
-        retail,
+        last_day_month AS entry_date,
+        entity As entity_name,
+        account AS account,
+        account_name AS account_name,
+        cost_center AS cost_center,
+        games AS games,
+        retail AS retail,
         description, 
         reference,
-        'Journal Entry' As upload_type,
-        'NGN' AS currency,
+        'Journal Entry' As entry_type,
+        'NGN' AS entity_currency,
         'TRUE' AS monthly_avg_rate,
-        IFF(account_type = 'DEBIT', value, 0) AS debit,
-        IFF(account_type = 'CREDIT', value, 0) AS credit,
+        IFF(account_type = 'DEBIT', value, 0) AS debit_amount,
+        IFF(account_type = 'CREDIT', value, 0) AS credit_amount,
 FROM union_cte 
 WHERE 1=1
     AND value <> 0
