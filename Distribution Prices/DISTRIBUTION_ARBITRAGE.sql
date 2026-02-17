@@ -17,8 +17,10 @@ WITH calculated_metrics AS (
     LEFT JOIN CARRY1ST_PLATFORM.REFINED.DIST_PRICES_PROD_MAP AS p
         ON d.c1st_prov_id = p.provider_id
         AND d.prov_sku_id = p.prov_sku_id
-    WHERE d.provider_name IN ('GAMERSMARKET', 'WG Cards', 'SEAGM')
-      AND d.cogs_usd > 0
+    WHERE 1=1
+        AND d.provider_name IN ('GAMERSMARKET', 'WG Cards', 'SEAGM')
+        AND d.cogs_usd > 0
+        AND product_type NOT IN ('Top Up')
 ),
 
 ranked_products AS (
@@ -72,7 +74,12 @@ pivoted_view AS (
         -- Aggregate Stats for Spread Calculation (Ignores NULLs automatically)
         MIN(val_per_usd_ratio) AS min_yield_available,
         MAX(val_per_usd_ratio) AS max_yield_available,
-        COUNT(DISTINCT provider_name) AS provider_count
+        COUNT(DISTINCT provider_name) AS provider_count,
+
+        MAX(val_per_usd_ratio) AS best_yield,
+        MAX_BY(provider_name, val_per_usd_ratio) AS best_provider,
+        MAX_BY(prov_prod_name, val_per_usd_ratio) AS best_prod_name,
+        MAX_BY(prov_sku_id, val_per_usd_ratio) AS best_sku_id,
 
     FROM best_per_provider
     GROUP BY prod_map, face_value_cy
@@ -114,7 +121,12 @@ SELECT
     ROUND(
         (max_yield_available - min_yield_available) 
         / NULLIF(min_yield_available, 0) * 100, 
-    2) AS spread_percentage
+    2) AS spread_percentage,
+    
+    best_provider,
+    ROUND(best_yield, 2) AS best_yield,
+    best_prod_name,
+    best_sku_id
 
 FROM pivoted_view
 WHERE 1=1

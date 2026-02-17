@@ -11,7 +11,7 @@ WITH reward_base AS (
         "currency" AS currency,
         CASE 
             WHEN "category" = 'Gift Card' THEN 'Gift Card'
-            WHEn "category" = 'Recharges' THEN 'Top-Up' 
+            WHEN "category" = 'Recharges' THEN 'Top-Up' 
             ELSE 'Unknown'
             END As category
     FROM CARRY1ST_PLATFORM.RAW.REWARD_STORE_PRICES s,
@@ -153,7 +153,11 @@ union_cte AS (
         IFF(sku_price_currency = 'USD', min_price, NULL) AS cogs_usd,
         IFF(currency_code = sku_price_currency, ((min_face_value - min_price) / min_face_value) * 100, NULL ) AS c1st_margin,
         IFF(min_face_value = max_face_value, 'Discrete', 'Continuous') AS volume_type,
-        'Unknown' AS product_type   
+        CASE 
+            WHEN REGEXP_LIKE(item_name, '.*top[- ]up.*', 'i') THEN 'Top Up' 
+            WHEN REGEXP_LIKE(item_name, '.*gift[- ]card.*', 'i') THEN 'Gift Card'
+            ELSE 'Unknown'
+            END AS product_type   
     FROM carry1st_platform.raw.wg_cards_prices_v2 
     WHERE 1=1
 
