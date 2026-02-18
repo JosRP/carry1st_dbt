@@ -197,8 +197,8 @@ union_cte AS (
         26 AS c1st_prov_id,
         "id" AS prov_sku_id,
         'GAMERSMARKET' AS provider_name,
-        "platformName" AS prov_name_2,
-        "productName" AS prov_name,
+        "platformName" AS prov_name,
+        "productName" AS prov_name_2,
         "faceValue" AS face_value,                    
         NULL AS face_value_cy,                  
         NULL AS srp,
@@ -213,24 +213,28 @@ union_cte AS (
     WHERE 1=1
         AND lower("platformName") <> 'test'
 
+    UNION ALL
    --  -- ARTIFICIAL COGS
-   --  SELECT 
-   --      provider_id AS c1st_prov_id,
-   --      provider_name AS provider_name,
-   --      DATE('2025-11-06') AS prov_date,
-   --      bundle_id AS prov_sku_id,
-   --      value AS srp,
-   --      null As srp_currency,
-   --      (value * (1-(provider_discount/100))) AS usd_cogs,
-   --      bundle_name AS prov_name,
-   --      bundle_name AS prov_name_2,
-   --      provider_discount AS prov_margin,
-   --      currency AS prov_currency,
-   --      'Unknown' AS volume_type,
-   --      IFF(provider_id = 37,'Unknown','Gift Card') AS product_type,
-   --      IFF(provider_id = 37,0,1) AS shop_used_flag,
-   --      NULL AS provider_sku_category
-   --  FROM carry1st_platform.refined.upload__artificial_cogs
+    SELECT 
+        DATE('2025-11-06') AS prov_date,
+        provider_id AS c1st_prov_id,
+        bundle_id AS prov_sku_id,
+        provider_name AS provider_name,
+        bundle_name AS prov_name,
+        bundle_name AS prov_name_2,
+        value AS face_value,                    
+        'USD' AS face_value_cy,                  
+        value AS srp,
+        'USD' As srp_cy,
+        (value * (1-(provider_discount/100))) AS cogs,
+        'USD' AS cogs_cy,                        
+        (value * (1-(provider_discount/100))) AS cogs_usd,
+        provider_discount AS c1st_margin,
+        'Discrete' AS volume_type,
+        IFF(provider_id = 37,'Unknown','Gift Card') AS product_type 
+    FROM carry1st_platform.refined.upload__artificial_cogs
+    WHERE 1=1
+        AND provider_name = 'MidasBuy'
 )
 
 SELECT
